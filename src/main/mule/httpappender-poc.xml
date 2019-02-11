@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sockets="http://www.mulesoft.org/schema/mule/sockets" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:aflaclogger="http://www.mulesoft.org/schema/mule/aflaclogger"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/aflaclogger http://www.mulesoft.org/schema/mule/aflaclogger/current/mule-aflaclogger.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/sockets http://www.mulesoft.org/schema/mule/sockets/current/mule-sockets.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="380934c2-6bf4-4d63-b01f-4ce5f170d3e2" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}"/>
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="e3b5ce0c-e1da-41aa-acbf-b7dc1e7646db" file="common.properties" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="27f5c194-b1b9-486c-a4a1-9170068993a2" >
+		<http:request-connection host="mule-worker-internal-httpappenderreceive.uk-e1.cloudhub.io" port="8091" />
+	</http:request-config>
+	<flow name="httpappender-pocFlow" doc:id="d12f1fd8-914f-4b6d-9da6-2aa10dc97429" >
+		<http:listener doc:name="Listener" doc:id="65e55de6-2fc8-4511-988a-573d38aa1fc2" config-ref="HTTP_Listener_config" path="/logtest"/>
+		<!-- <http:request method="POST" doc:name="Request" doc:id="8a2381f1-a08e-4d8e-aa54-63cfa7192785" config-ref="HTTP_Request_configuration" path="/log-entries"/>
+		 -->
+		<logger level="INFO" doc:name="Logger" doc:id="0959a92d-b6c3-4132-80fe-c60418e80959" message="Testing the HTTP appender"/>
+		<ee:transform doc:name="Transform Message" doc:id="8ee5a0d3-7a64-49b1-b2b0-d89c64218b3b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	success:"Status is green for go!"
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7e9cb4d1-605d-4423-814e-5b8f5687d0b6" message="#[message.payload]"/>
+	</flow>
+	<flow name="httpappender-pocFlow_testReceiver" doc:id="2a3d7eac-7f77-4bd4-b4d7-666c1755fed3" >
+		<http:listener doc:name="Listener" doc:id="3e646db8-846b-4ce7-aeb9-5bfe2f5f8f48" config-ref="HTTP_Listener_config" path="/testlogtest"/>
+		<!-- <http:request method="POST" doc:name="Request" doc:id="cd48b7ea-d359-4258-a6e1-5c6677e2d8a0" config-ref="HTTP_Request_configuration" path="/log-entries"/>
+		 -->
+		<logger level="INFO" doc:name="Logger" doc:id="9f763ed0-c66d-4ee2-b5aa-8116e909aa3a" message="This is a test to test the test"/>
+		<set-payload value='"This is a test to test the test"' doc:name="Set Payload" doc:id="888ba99a-98c3-4e3d-ba32-47c9c955b845" />
+		<http:request method="POST" doc:name="Request" doc:id="7d2a13f9-cc73-4977-aa5b-3940c4bf580c" config-ref="HTTP_Request_configuration" path="/listentest"/>
+	</flow>
+</mule>
